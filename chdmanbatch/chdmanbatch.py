@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 # chdmanbatch.py by shinrax2
-VERSION = "0.1"
+VERSION = "0.2"
 
 #built-in
 import subprocess
@@ -17,13 +17,12 @@ def call(cmd):
         cmd = shlex.split(cmd)
     return subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0].decode("utf8")
 
-def getfiles(dirpath):
+def getfiles(dirpath, filetypes = [".cue", ".iso"]):
     f =  []
     for root, dirs, files in os.walk(dirpath):
         for file in files:
             if os.path.isfile(os.path.join(root, file)):
                 f.append(os.path.join(root, file))
-    filetypes = [".cue"]
     newfiles = []
     for file in f:
         for filetype in filetypes:
@@ -36,25 +35,30 @@ def getbasedir():
         basedir = sys.executable
     else:
         basedir = __file__
-    return basedir
+    return os.path.dirname(basedir)
 
 print(f"chdmanbatch verison {VERSION} by shinrax2")
 
-searchpath = [os.path.join(getbasedir(), ".")]
+searchpath = [getbasedir(), os.getcwd()]
 chdman = "chdman"
 if platform.system() == "Windows":
     chdman = f"{chdman}.exe"
 
 if (shutil.which(chdman) is not None) == False:
-    print(f"this tool requires \"{chdman}\" to be on path!")
+    print(f"this tool requires \"{chdman}\" to be on PATH!")
     sys.exit(0)
 
 chdman_exe = os.path.abspath(shutil.which(chdman))
 force = False
+deleteinput = False
 
 if "-f" in sys.argv:
     force = True
     sys.argv.remove("-f")
+
+if "--deleteinput" in sys.argv:
+    deleteinput = True
+    sys.argv.remove("--deleteinput")
 
 if len(sys.argv[1:]) > 0:
     searchpath = sys.argv[1:]
@@ -64,6 +68,8 @@ for dir in searchpath:
 print(f"chdman executable: {chdman_exe}")
 print(f"search path(s):{paths}")
 print(f"overwrite files: {'yes' if force == True else 'no'}")
+print(f"delete input files: {'yes' if deleteinput == True else 'no'}")
+
 i = 1
 l = len(searchpath)
 for dir in searchpath:
@@ -71,7 +77,7 @@ for dir in searchpath:
     l2 = len(files)
     i2 = 1
     print(f"searching dir {i} of {l}: {os.path.abspath(dir)}")
-    print(f"found {l2} \".cue\" files")
+    print(f"found {l2} supported files")
     for file in files:
         print(f"compressing file {i2} of {l2}")
         inputfile = os.path.abspath(file)
@@ -89,5 +95,8 @@ for dir in searchpath:
             print(call(cmd))
         else:
             print("skipping file")
+        if deleteinput == True:
+            print(f"deleting input file\"{inputfile}\"")
+            os.remove(inputfile)
         i2 += 1
     i += 1
