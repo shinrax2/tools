@@ -39,7 +39,7 @@ def getbasedir():
 
 print(f"chdmanbatch verison {VERSION} by shinrax2")
 
-searchpath = [getbasedir(), os.getcwd()]
+searchpath = [os.getcwd()]
 chdman = "chdman"
 if platform.system() == "Windows":
     chdman = f"{chdman}.exe"
@@ -51,6 +51,7 @@ if (shutil.which(chdman) is not None) == False:
 chdman_exe = os.path.abspath(shutil.which(chdman))
 force = False
 deleteinput = False
+medium = "cd"
 
 if "-f" in sys.argv:
     force = True
@@ -59,6 +60,12 @@ if "-f" in sys.argv:
 if "--deleteinput" in sys.argv:
     deleteinput = True
     sys.argv.remove("--deleteinput")
+if "--cd" in sys.argv:
+    medium = "cd"
+    sys.argv.remove("--cd")
+if "--dvd" in sys.argv:
+    medium = "dvd"
+    sys.argv.remove("--dvd")
 
 if len(sys.argv[1:]) > 0:
     searchpath = sys.argv[1:]
@@ -82,7 +89,7 @@ for dir in searchpath:
         print(f"compressing file {i2} of {l2}")
         inputfile = os.path.abspath(file)
         outputfile = f"{os.path.splitext(os.path.abspath(file))[0]}.chd"
-        cmd = f"{chdman_exe} createcd --input \"{inputfile}\" --output \"{outputfile}\" --numprocessors {os.cpu_count()}"
+        cmd = f"{chdman_exe} create{medium} --input \"{inputfile}\" --output \"{outputfile}\" --numprocessors {os.cpu_count()}"
         print(f"input file: {inputfile}")
         print(f"output file: {outputfile}")
         if os.path.exists(outputfile) == True:
